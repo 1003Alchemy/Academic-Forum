@@ -10,12 +10,11 @@ import base64
 from flask import render_template, request, make_response, redirect, url_for, abort, jsonify
 from flask import Blueprint
 from PIL import Image
-import numpy as np
 from io import BytesIO
 from utils.annoy_search import AnnoySearch
 from utils.inference import extract_feature_from_path
 from app.models import select_image_by_annoy
-
+from utils.exts import Inference_Tools
 t = AnnoySearch()
 
 main_page = Blueprint('first', __name__)
@@ -78,7 +77,7 @@ def search():
     im=im.convert('RGB')
     im.save('static/temp/temp2.jpg', 'JPEG')
     # # 获取图像特征
-    feats = extract_feature_from_path(model, 'static/temp/temp2.jpg')
+    feats = Inference_Tools.extract_feature_from_path('static/temp/temp2.jpg')
     idx = t.get_nns_by_vector(feats, 12)
     results = [select_image_by_annoy[x].image_path for x in idx]
     return jsonify(results=results)
