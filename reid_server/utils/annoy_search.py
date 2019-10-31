@@ -13,7 +13,7 @@ from utils.tools import embed2str, str2embed
 
 
 class AnnoySearch:
-    def __init__(self, vec_dim=128, lmdb_file="lmdb", ann_file="annoy_file/tree.ann", metric='angular',
+    def __init__(self, vec_dim=2048, lmdb_file="static/lmdb", ann_file="static/annoy_file/tree.ann", metric='angular',
                  num_trees=10):
         self.vec_dim = vec_dim  # 要index的向量维度
         self.metric = metric  # 度量可以是"angular"，"euclidean"，"manhattan"，"hamming"，或"dot"
@@ -48,6 +48,7 @@ class AnnoySearch:
             for key, value in wfp.cursor():
                 key = int(key)
                 value = str2embed(value)
+                print(len(value))
                 self.annoy_instance.add_item(key, value)
 
             self.annoy_instance.build(self.num_trees)
@@ -83,10 +84,10 @@ if __name__ == '__main__':
     import random
     import time
     start=time.clock()
-    ann_s = AnnoySearch()
-    # ann_s.create_index_from_lmdb()
+    ann_s = AnnoySearch(2048)
+    ann_s.create_index_from_lmdb()
     ann_s.load_annoy()
-    res = ann_s.get_nns_by_vector([random.gauss(0, 1) for z in range(128)], 2)
+    res = ann_s.get_nns_by_vector([random.gauss(0, 1) for z in range(2048)], 2)
     print(res)
     print(time.clock()-start)
     print(ann_s.get_item_vector(res[0]))

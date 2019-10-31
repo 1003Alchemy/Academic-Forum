@@ -17,12 +17,11 @@ from config import config
 from utils.modeling.baseline import Baseline
 
 
-
 class Inference(object):
     def __init__(self):
         self.model_path = config['production'].CNN_MODEL_PATH
         self.model = self.get_model()
-        self.pool = multiprocessing.Pool(processes=8)
+
         self.test_transform = transforms.Compose([
             transforms.Resize((224, 224)),
             transforms.ToTensor(),
@@ -39,14 +38,14 @@ class Inference(object):
             input_img = inputs.to('cuda')
             outputs = self.model(input_img)
             features = torch.nn.functional.normalize(outputs, dim=1, p=2)
-        return features.cpu().data.numpy()
+        return features.cpu().data.numpy().astype().astype(np.float32)
 
     def extract_feature(self, inputs):
         with torch.no_grad():
             input_img = inputs.to('cuda')
             outputs = self.model(input_img)
             features = torch.nn.functional.normalize(outputs, dim=1, p=2)
-        return features.cpu().data.numpy()
+        return features.cpu().data.numpy().astype(np.float32)
 
     def read_image(self, img_path):
         img = default_loader(img_path)
@@ -70,11 +69,12 @@ class Inference(object):
     def get_data_feature(self, data_dir):
         test_img_paths = [path for path in self.list_pictures(data_dir)]
         batch_size = 64
-        gf = np.zeros((len(test_img_paths), 1024))
+        gf = np.zeros((len(test_img_paths), 2048))
         for i in tqdm(range(int(np.ceil(len(test_img_paths) / batch_size))), desc="图像特征提取"):
-            cur_test_img = self.pool.map(self.read_image, test_img_paths[i * batch_size:(i + 1) * batch_size])
+            cur_test_img=[]
+            for x in test_img_paths[i * batch_size:(i + 1) * batch_size]:
+                cur_test_img .append( self.read_image(x))
             cur_test_img = torch.cat(cur_test_img, 0)
-            if len(cur_test_img) == 0: break
             cur_gf = self.extract_feature(cur_test_img)
             gf[i * batch_size:(i + 1) * batch_size, :] = cur_gf
         return gf

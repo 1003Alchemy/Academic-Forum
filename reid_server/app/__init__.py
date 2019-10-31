@@ -14,7 +14,6 @@ from app.models import *
 
 
 def create_app(env='production'):
-    from utils.exts import Inference_Tools
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     templates_dir = os.path.join(BASE_DIR, 'templates')
     static_dir = os.path.join(BASE_DIR, 'static')
@@ -26,5 +25,4 @@ def create_app(env='production'):
     # 注册蓝图
     app.register_blueprint(blueprint=main_page)
     app.register_blueprint(blueprint=api)
-    # 初始化cnn模型
     return app

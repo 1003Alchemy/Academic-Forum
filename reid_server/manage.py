@@ -6,8 +6,8 @@
 @Email   : zlp5icv@gmail.com
 """
 from flask_script import Manager
-from flask_migrate import Migrate, MigrateCommand
-from app import create_app, db, add_camera
+from flask_migrate import Migrate
+from app import create_app, db
 app = create_app()
 ctx = app.app_context()
 ctx.push()
