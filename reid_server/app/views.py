@@ -7,14 +7,16 @@
 """
 import uuid
 import base64
-from flask import render_template, request, make_response, redirect, url_for, abort, jsonify
+from flask import render_template, request, jsonify
 from flask import Blueprint
 from PIL import Image
 from io import BytesIO
 from utils.annoy_search import AnnoySearch
-from app.models import select_image_by_annoy
+from app.models import *
 import utils.exts
+import numpy as np
 t = AnnoySearch()
+t.load_annoy()
 
 main_page = Blueprint('first', __name__)
 
@@ -78,7 +80,9 @@ def search():
     # # 获取图像特征
     feats = utils.exts.Inference_Tools.extract_feature_from_path('static/temp/temp2.jpg')
     idx = t.get_nns_by_vector(feats, 12)
-    results = [select_image_by_annoy[x].image_path for x in idx]
+    print(idx[0])
+    print(select_image_by_annoy(ImageInfo,idx[0]))
+    results = [select_image_by_annoy(ImageInfo,x).image_path for x in idx]
     return jsonify(results=results)
 
 

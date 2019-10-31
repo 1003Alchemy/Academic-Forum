@@ -22,6 +22,8 @@ def create_app(env='production'):
     app.config.from_object(config[env])
     # 数据库初始化
     db.init_app(app)
+    ctx = app.app_context()
+    ctx.push()
     # 注册蓝图
     app.register_blueprint(blueprint=main_page)
     app.register_blueprint(blueprint=api)

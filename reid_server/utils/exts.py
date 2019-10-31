@@ -38,7 +38,7 @@ class Inference(object):
             input_img = inputs.to('cuda')
             outputs = self.model(input_img)
             features = torch.nn.functional.normalize(outputs, dim=1, p=2)
-        return features.cpu().data.numpy().astype().astype(np.float32)
+        return features.cpu().data.numpy().astype(np.float32).squeeze()
 
     def extract_feature(self, inputs):
         with torch.no_grad():

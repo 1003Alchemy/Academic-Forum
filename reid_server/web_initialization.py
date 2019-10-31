@@ -5,14 +5,13 @@
 @Author  : zlp
 @Email   : zlp5icv@gmail.com
 """
-from app import db, create_app, add_camera, add_image, add_class, select_image_by_id, select_image_by_path
+from app import *
 import os
-from utils.inference import get_data_feature, list_pictures, get_label
-import multiprocessing
 import numpy as np
 import lmdb
 from utils.annoy_search import AnnoySearch
 import utils.exts
+
 
 class FeatsLmdb:
     def __init__(self, lmdb_path="lmdb", map_size=int(1e8)):
@@ -80,30 +79,38 @@ class FeatsLmdb:
 
 
 cam_list = {"g1": 1, "g2": 2, "g3": 3, "g4": 4, "p1": 5, "p2": 6, "p3": 7, "p4": 8}
+for i in range(1, 20):
+    cam_list["c" + str(i).zfill(3)] = 8 + i
 app = create_app()
 app_ctx = app.app_context()  # app_ctx = app/g
 with app_ctx:  # __enter__,通过LocalStack放入Local中
     # 创建数据库
-    # db.create_all()
-    # # 导入摄像头数据
-    # for i in range(len(cam_list)):
-    #     add_camera(i + 1, "安检口" + str(i + 1), "192.168." + str(100 + i))
-    # # 导入图片数据
-    # cnt = 1
-    # for root, dir, files in os.walk("/static/img_data"):
-    #     class_f = False
-    #     for file in files:
-    #         image_path = os.path.join(os.path.split(root)[-1], file)
-    #         class_id = int(os.path.split(root)[-1])
-    #         class_name = str(os.path.split(root)[-1])
-    #         date = "20191008104400"
-    #         annoy_index = cnt
-    #         cid = cam_list[file.split(".")[0].split("_")[1] + str(file.split(".")[0].split("_")[2])]
-    #         if not class_f:
-    #             add_class(class_id + 1, class_name)
-    #             class_f = True
-    #         add_image(image_path, class_id + 1, cid, annoy_index, date)
-    #         cnt += 1
+    db.create_all()
+    # 导入摄像头数据
+    for i in range(len(cam_list)):
+        add_camera(CameraInfo,i + 1, "安检口" + str(i + 1), "192.168." + str(100 + i))
+    # 导入图片数据
+    cnt = 1
+    for root, dir, files in os.walk("/static/img_data"):
+        class_f = False
+        for file in files:
+            image_path = os.path.join(os.path.split(root)[-1], file)
+            class_id = int(os.path.split(root)[-1])
+            class_name = str(os.path.split(root)[-1])
+            date = "20191008104400"
+            annoy_index = cnt
+            if len(file.split(".")[0].split("_")) == 4:
+                cid = cam_list[file.split(".")[0].split("_")[1]]
+                class_name = str(os.path.split(root)[-1])
+            elif len(file.split(".")[0].split("_")) == 3:
+                cid = cam_list[file.split(".")[0].split("_")[1] + str(file.split(".")[0].split("_")[2])]
+            else:
+                cid=1
+            if not class_f:
+                add_class(ClassInfo,class_id + 1, class_name)
+                class_f = True
+            add_image(ImageInfo,image_path, class_id + 1, cid, annoy_index, date)
+            cnt += 1
     # print("数据库导入完成！")
     data_dir = 'static/img_data'
     features = utils.exts.Inference_Tools.get_data_feature(data_dir)
